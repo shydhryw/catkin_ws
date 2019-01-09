@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="rep_ryw">
+
+    <!-- Import all Gazebo-customization elements, including Gazebo colors -->
+    <xacro:include filename="$(find rep_ryw)/simulation/rep.gazebo" />
+
+    <!-- Robot mechanical and motor parameters -->
+    <xacro:property name="PI" value="3.14159"/>
+    <xacro:property name="wheel_offset_x" value="0.479" />
+    <!-- x,y,z in base_footprint CS -->
+    <xacro:property name="wheel_offset_y" value="0.0" />
+    <xacro:property name="wheel_offset_z" value="0.110" />
+    <xacro:property name="wheel_joint_damping" value="1.0" />
+    <xacro:property name="wheel_joint_friction" value="1.0" />
+    <xacro:property name="wheel_joint_effort_limit" value="1000.0" />
+    <xacro:property name="wheel_joint_velocity_limit" value="2000.0" />
+    <xacro:property name="wheel_mechanical_reduction" value="1.0" />
+    <xacro:property name="motor_wheel_offset_z" value="0.110" />
+    <xacro:property name="side_wheel_offset_y" value="0.267" />
+    <xacro:property name="side_wheel_offset_z" value="0.070" />
+    <xacro:property name="side_wheel_joint_damping" value="1.0" />
+    <xacro:property name="side_wheel_joint_friction" value="1.0" />
+    <!-- xacro:property name="side_wheel_offset_z" value="0.075" / -->
+
+    <xacro:property name="steer_joint_damping" value="2.0" />
+    <xacro:property name="steer_joint_friction" value="1.0" />
+    <xacro:property name="steer_joint_effort_limit" value="100.0" />
+    <xacro:property name="steer_joint_velocity_limit" value="100.0" />
+    <xacro:property name="motor_wheel_mechanical_reduction" value="100.0" />
+
+    <material name="black">
+        <color rgba="0 0 0 1"/>
+    </material>
+
+    <material name="white">
+        <color rgba="1 1 1 1"/>
+    </material>
+
+    <xacro:macro name="default_inertial" params="mass">
+        <inertial>
+            <mass value="${mass}" />
+            <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+        </inertial>
+    </xacro:macro>
+
+    <link name="base_link">
+        <inertial>
+            <origin xyz="-0.00040041 0.07848 1.4275" rpy="0 0 0" />
+            <mass value="353.37" />
+            <inertia ixx="133.11" ixy="1.5652" ixz="5.7253" iyy="137.3" iyz="-5.7873" izz="6.6505" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/base_link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.61569 0.64314 0.67451 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/base_link.STL" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="motor_Link">
+        <inertial>
+            <origin xyz="0.0051653 0.014164 1.8271E-17" rpy="0 0 0" />
+            <xacro:default_inertial mass="2.1701"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/motor_Link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="255 255 255 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/motor_Link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="jt-m2b" type="revolute">
+        <origin xyz="0 0.43 0.12633" rpy="-1.5708 0 0" />
+        <parent link="base_link" />
+        <child link="motor_Link" />
+        <axis xyz="0 -1 0" />
+        <limit effort="3.0" lower="-3.1415926" upper="3.1415926" velocity="0.1" />
+    </joint>
+    <transmission name="joint_m2b_trans">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="jt-m2b">
+            <hardwareInterface>EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_m2b_motor">
+            <hardwareInterface>EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>${motor_wheel_mechanical_reduction}</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <link name="wheel_Link">
+        <inertial>
+            <origin xyz="0 0.025 0" rpy="0 0 0" />
+            <xacro:default_inertial mass="0.80751"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/wheel_Link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.49804 0.49804 0.49804 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/wheel_Link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="jt-w2m" type="continuous">
+        <origin xyz="-0.025 0.08 0" rpy="0 0 1.5708" />
+        <parent link="motor_Link" />
+        <child link="wheel_Link" />
+        <axis xyz="0 1 0" />
+        <limit effort="5.0" velocity="0.1" />
+        <joint_properties damping="2.0" friction="1.0"/>
+    </joint>
+    <transmission name="joint_w2m_trans">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="jt-w2m">
+            <hardwareInterface>EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_w2m_motor">
+            <hardwareInterface>EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>100.0</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <link name="rwheel_Link">
+        <inertial>
+            <origin xyz="0 0.075 0 " rpy="0 0 0" />
+            <xacro:default_inertial mass="0.54675"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 -1.5708 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/rwheel_Link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.49804 0.49804 0.49804 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 -1.5708 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/rwheel_Link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="jt-rw2b" type="continuous">
+        <origin xyz="-0.305 -0.93759 0.0063292" rpy="0 0 0" />
+        <!--rpy="-1.5708 0.3918 -1.5708" /-->
+        <parent link="base_link" />
+        <child link="rwheel_Link" />
+        <axis xyz="1 0 0" />
+    </joint>
+
+    <link name="lwheel_Link">
+        <inertial>
+            <origin xyz="0 0.075 0" rpy="0 0 0" />
+            <!--xyz="-1.1102E-16 -5.5511E-17 0.075" rpy="0 0 0" /-->
+            <xacro:default_inertial mass="0.54675"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 1.5708" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/lwheel_Link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.49804 0.49804 0.49804 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 1.5708" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/lwheel_Link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="jt-lw2b" type="continuous">
+        <origin xyz="0.305 -0.93759 0.0063292" rpy="0 0 0" />
+        <!-- origin xyz="0.305 -0.93759 0.0063292" rpy="3.6732e-06 0.3918 -1.5708" /-->
+        <parent link="base_link" />
+        <child link="lwheel_Link" />
+        <axis xyz="1 0 0" />
+    </joint>
+
+    <link name="fork_Link">
+        <inertial>
+            <origin xyz="0.1638 -5.3071E-07 -0.37996" rpy="0 0 0" />
+            <mass value="164.19" />
+            <inertia ixx="2.17" ixy="-1.4273E-05" ixz="1.5204" iyy="3.4448" iyz="1.2533E-05" izz="1.2748" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/fork_Link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.61569 0.64314 0.67451 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/fork_Link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="jt-f2b" type="prismatic">
+        <origin xyz="0 0.105 0.85474" rpy="0 0 -1.5708" />
+        <parent link="base_link" />
+        <child link="fork_Link" />
+        <axis xyz="0 0 1" />
+        <limit effort="0.01" lower="0.01" upper="0.58" velocity="0.1" />
+        <joint_properties damping="2.0" friction="1.0"/>
+    </joint>
+
+    <link name="main_Link">
+        <inertial>
+            <origin xyz="-5.0336E-07 0.36638 0.35862" rpy="0 0 0" />
+            <xacro:default_inertial mass="588.2"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/main_Link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.61569 0.64314 0.67451 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://rep_ryw/meshes/main_Link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="jt-ma2b" type="fixed">
+        <origin xyz="-0.005 0.165 0.05" rpy="1.5708 -8.6736E-17 3.1416" />
+        <parent link="base_link" />
+        <child link="main_Link" />
+        <axis xyz="0 0 0" />
+    </joint>
+
+</robot>

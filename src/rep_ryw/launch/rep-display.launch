@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<launch>
+
+      <!-- these are the arguments you can pass this launch file, 
+            for example paused:=true -->
+      <arg name="gui" default="true"/>
+      <arg name="rvizconfig" default="$(find rep_ryw)/rviz/urdf.rviz" />
+
+      <!-- Load the URDF into the ROS Parameter Server -->
+      <param name="rep/robot_description" textfile="$(find rep_ryw)/urdf/rep.urdf" />
+      <param name="use_gui" value="$(arg gui)"/>
+
+      <node name="joint_state_publisher" 
+            pkg="joint_state_publisher" type="joint_state_publisher" ns="rep"/>
+
+      <!-- convert joint states to TF transforms for rviz, etc -->
+      <node name="robot_state_publisher" 
+            pkg="robot_state_publisher" type="state_publisher" 
+            ns="rep" respawn="false" output="screen">
+            <!--remap from="/joint_states" to="/rep/joint_states"/-->
+      </node>
+
+      <node name="rviz" pkg="rviz" type="rviz" 
+            ns="rep" args="-d $(arg rvizconfig)" required="true">
+            <!--remap from="/odom" to="/rep/odom"/-->
+            <remap from="/odom" to="rep/mobile_base_controller/odom"/>
+      </node>
+      <!-- ros_control rep launch file -->
+      <!--include file="$(find rep_control)/launch/rep_control.launch" /-->
+      <!--arg name="model" />
+      <arg name="gui" default="False" />
+      <param name="robot_description" textfile="$(find rep)/robots/rep.urdf" />
+      <param name="use_gui" value="$(arg gui)" />
+      <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+      <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+      <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rep)/urdf.rviz" /-->
+</launch>

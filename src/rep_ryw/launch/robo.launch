@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <!-- these are the arguments you can pass this launch file, 
+  for example paused:=true -->
+  <arg name="gui" default="true"/>
+  <arg name="rvizconfig" default="$(find rep_ryw)/rviz/urdf.rviz" />
+
+  <!-- Load the URDF into the ROS Parameter Server -->
+  <param name="r3d4/robot_description"
+        command="$(find xacro)/xacro '$(find rep_ryw)/urdf/r3d4.urdf.xacro'" />
+  <param name="use_gui" value="$(arg gui)"/>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" 
+        type="joint_state_publisher" ns="r3d4"/>
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" 
+        type="state_publisher" ns="r3d4"
+        respawn="false" output="screen">
+        <!--remap from="/joint_states" to="/r3d4/joint_states"/-->
+  </node>
+  
+  <node name="rviz" pkg="rviz" type="rviz" ns="r3d4"
+        args="-d $(arg rvizconfig)" required="true">
+        <!--remap from="/odom" to="/r3d4/odom"/-->
+        <remap from="/odom" to="r3d4/mobile_base_controller/odom"/>
+  </node>
+  <!-- ros_control r3d4 launch file -->
+  <!--include file="$(find r3d4_control)/launch/r3d4_control.launch" /-->
+
+</launch>

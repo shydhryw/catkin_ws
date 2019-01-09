@@ -1,0 +1,8 @@
+prefix=/home/shydh/ros_src/rbx1/rbx1_nav-build/devel
+
+Name: rbx1_nav
+Description: Description of rbx1_nav
+Version: 0.4.0
+Cflags: -I/home/shydh/ros_src/rbx1/rbx1_nav-build/devel/include
+Libs: -L/home/shydh/ros_src/rbx1/rbx1_nav-build/devel/lib 
+Requires: dynamic_reconfigure
